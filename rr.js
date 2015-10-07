@@ -238,7 +238,7 @@ function catPos() {
 	while (tempy > 525 || tempy < 25) tempy = Math.ceil(Math.random()*30)*25;
 	var redo = false;
 	for (var i = 0; i < grass.length; i++) {
-		if(tempx === grass[i].x && tempy === grass[i].y) redo = true;
+		if((tempx === grass[i].x && tempy === grass[i].y) || (tempx === 275 && tempy === 275)) redo = true;
 	}
 	if (redo) catPos();
 	else cats.push({x: tempx, y: tempy});
@@ -360,6 +360,7 @@ function catMove() {
 		}
 	}
 	touch3(cats, cats, singleCatMove2)
+	createCheese();
 }
 
 function singleCatMove(arrNum) {
@@ -383,6 +384,23 @@ var catInterval = setInterval(function() {
 	catMove();
 }, 1000)
 
+var cheese = [];
+
+function createCheese() {
+	var allCatsCaught = true;
+	for (var i = 0; i < catBestMove.length; i++) {
+		if (catBestMove[i].distance != 1000) allCatsCaught = false;
+	}
+	if (allCatsCaught) {
+		for (var i = 0; i < cats.length; i++) {
+			cheese.push(cats[i]);
+		}
+		for (var i = 0; i < cats.length; i++) {
+			removeCat(i);
+		}
+	}
+}
+
 
 function paint() {
 	if (wallReady && grassReady && catReady && mouseReady && cheeseReady) {
@@ -396,6 +414,9 @@ function paint() {
 		}
 		for (var i = 0; i < cats.length; i++) {
 			ctx.drawImage(catImg, cats[i].x, cats[i].y, 25, 25);
+		}
+		for (var i = 0; i < cheese.length; i++) {
+			ctx.drawImage(cheeseImg, cheese[i].x, cheese[i].y, 25, 25);
 		}
 		ctx.drawImage(mouseImg, mouse.x, mouse.y, 25, 25)
 	}
