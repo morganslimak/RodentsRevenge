@@ -135,6 +135,10 @@ function cheeseTouch(arrNum) {
 	score += 10;
 }
 
+function cheeseTouchGrass(arrNum) {
+	cheese.splice(arrNum, 1);
+}
+
 function wallTouch(arr, arr2, direction) {
 	var doesNotExist = true;
 	var series = true;
@@ -173,6 +177,7 @@ function grassMove() {
 			touch2(grassPos, cats, singleCatMove);
 			touch3(cats, cats, singleCatMove);
 			touch2(grassPos, cats, singleCatMove);
+			touch2(grassPos, cheese, cheeseTouchGrass);
 		}
 		else noMove();
 	}
@@ -191,6 +196,7 @@ function grassMove() {
 			touch2(grassPos, cats, singleCatMove);
 			touch3(cats, cats, singleCatMove);
 			touch2(grassPos, cats, singleCatMove);
+			touch2(grassPos, cheese, cheeseTouchGrass);
 		}
 		else noMove();
 	}
@@ -209,6 +215,7 @@ function grassMove() {
 			touch2(grassPos, cats, singleCatMove);
 			touch3(cats, cats, singleCatMove);
 			touch2(grassPos, cats, singleCatMove);
+			touch2(grassPos, cheese, cheeseTouchGrass);
 		}
 		else noMove();
 	}
@@ -227,6 +234,7 @@ function grassMove() {
 			touch2(grassPos, cats, singleCatMove);
 			touch3(cats, cats, singleCatMove);
 			touch2(grassPos, cats, singleCatMove);
+			touch2(grassPos, cheese, cheeseTouchGrass);
 		}
 		else noMove();
 	}
@@ -258,6 +266,11 @@ function catPos() {
 	}
 	for (var i = 0; i < cheese.length; i++) {
 		if (tempx === cheese[i].x && tempy === cheese[i].y) redo = true;
+	}
+	for (var i = 0; i < 6; i++) {
+		for (var q = 0; q < 6; q++) {
+			if (tempx === mouse.x + (25*i) && tempy === mouse.y + (25*q)) redo = true; 
+		}
 	}
 	if (redo) catPos();
 	else cats.push({x: tempx, y: tempy});
@@ -405,6 +418,7 @@ var catInterval = setInterval(function() {
 
 
 var level = 1;
+var levelClear = false;
 function catsCaught() {
 	var allCatsCaught = true;
 	for (var i = 0; i < catBestMove.length; i++) {
@@ -420,13 +434,28 @@ function catsCaught() {
 		else if (level === 3) createCat(1);
 		else if (level === 4) createCat(2);
 		else if (level === 5) createCat(2);
-		else if (level === 6) { resetLevel(); createCat(3); }
+		else if (level === 6) {
+			levelClear = true;
+			score += 20;
+			resetLevel(); 
+			createCat(3);
+		}
 		else if (level === 7) createCat(2);
 		else if (level === 8) createCat(3);
-		else if (level === 9) {resetLevel(); createCat(4); }
+		else if (level === 9) {
+			levelClear = true;
+			score += 30;
+			resetLevel(); 
+			createCat(4);
+		}
 		else if (level === 10) createCat(4);
 		else if (level === 11) createCat(2);
-		else if (level === 12) {resetLevel(); createCat(4)};
+		else if (level === 12) {
+			levelClear = true;
+			score += 20;
+			resetLevel(); 
+			createCat(4);
+		}
 		else if (level === 13) createCat(4);
 		else createCat(2);
 	}
@@ -435,6 +464,9 @@ function catsCaught() {
 var score = 0;
 
 function resetLevel() {
+	cheese = [];
+	walls = [];
+	grass = [];
 	setWalls();
 	setGrass();
 	mouse = {x: 275, y: 275};
@@ -457,11 +489,21 @@ function paint() {
 		for (var i = 0; i < cheese.length; i++) {
 			ctx.drawImage(cheeseImg, cheese[i].x, cheese[i].y, 25, 25);
 		}
-	ctx.fillStyle = "white";
-	ctx.fillRect(475, 5, 75, 15);
-	ctx.fillStyle = "black";
-	ctx.font  = "15px Arial";
-	ctx.fillText("Score: " + score, 476, 18);
+		ctx.fillStyle = "white";
+		ctx.fillRect(475, 5, 75, 15);
+		ctx.fillStyle = "black";
+		ctx.font  = "15px Arial";
+		ctx.textAlign = "left";
+		ctx.fillText("Score: " + score, 476, 18);
+		if (levelClear) {
+			ctx.font = "50px Arial";
+			ctx.fillStyle = "white";
+			ctx.textAlign = "center";
+			ctx.fillText("Level Cleared", canvas.width/2, canvas.height/2);
+			setTimeout(function () {
+				levelClear = false;
+			},2000);
+		}
 	}
 }
 
