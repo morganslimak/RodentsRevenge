@@ -84,11 +84,13 @@ $(window).keydown(function(e){
 function checkTouch() {
 	touch(grass, mouse, grassMove);
 	touch(walls, mouse, noMove);
+	touch(cats, mouse, gameOver);
+	touch(cheese, mouse, cheeseTouch);
 }
 
 function touch(arr, obj, action) {
 	for (var i = 0; i < arr.length; i++) {
-		if ( obj.x === arr[i].x && obj.y === arr[i].y) action();
+		if ( obj.x === arr[i].x && obj.y === arr[i].y) action(i);
 	}
 }
 
@@ -117,6 +119,19 @@ function noMove() {
 	else if (dir === "r") mouse.x -= 25;
 	else if (dir === "u") mouse.y += 25;
 	else mouse.y -= 25;
+}
+
+function gameOver() {
+	clearInterval(gameLoop);
+	ctx.font = "100px Arial";
+	ctx.fillStyle = "red";
+	ctx.textAlign = "center";
+	ctx.fillText("Game Over!", canvas.width/2, canvas.height/2);
+}
+
+function cheeseTouch(arrNum) {
+	cheese.splice(arrNum, 1);
+	score += 10;
 }
 
 function wallTouch(arr, arr2, direction) {
@@ -256,7 +271,7 @@ function removeCat(arrNum) {
 	cats.splice(arrNum, 1);
 }
 
-createCat(4);
+createCat(2);
 
 var catMoves;
 var catBestMove;
@@ -395,12 +410,11 @@ function createCheese() {
 		for (var i = 0; i < cats.length; i++) {
 			cheese.push(cats[i]);
 		}
-		for (var i = 0; i < cats.length; i++) {
-			removeCat(i);
-		}
+		cats = [];
 	}
 }
 
+var score = 0;
 
 function paint() {
 	if (wallReady && grassReady && catReady && mouseReady && cheeseReady) {
@@ -412,19 +426,25 @@ function paint() {
 		for (var i = 0; i < grass.length; i++) {
 			ctx.drawImage(grassImg, grass[i].x, grass[i].y, 25, 25);
 		}
+		ctx.drawImage(mouseImg, mouse.x, mouse.y, 25, 25);
 		for (var i = 0; i < cats.length; i++) {
 			ctx.drawImage(catImg, cats[i].x, cats[i].y, 25, 25);
 		}
 		for (var i = 0; i < cheese.length; i++) {
 			ctx.drawImage(cheeseImg, cheese[i].x, cheese[i].y, 25, 25);
 		}
-		ctx.drawImage(mouseImg, mouse.x, mouse.y, 25, 25)
+	ctx.fillStyle = "white";
+	ctx.fillRect(475, 5, 75, 15);
+	ctx.fillStyle = "black";
+	ctx.font  = "15px Arial";
+	ctx.fillText("Score: " + score, 476, 18);
 	}
 }
 
 var gameLoop = setInterval(function() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	paint();
+	touch(cats, mouse, gameOver);
 }, 100);
 
 
