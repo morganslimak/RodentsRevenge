@@ -40,6 +40,7 @@ cheeseImg.onload = function () {
 };
 cheeseImg.src = "cheese.jpg";
 
+var cheese = [];
 var grass = [];
 
 function setGrass() {
@@ -253,7 +254,10 @@ function catPos() {
 	while (tempy > 525 || tempy < 25) tempy = Math.ceil(Math.random()*30)*25;
 	var redo = false;
 	for (var i = 0; i < grass.length; i++) {
-		if((tempx === grass[i].x && tempy === grass[i].y) || (tempx === 275 && tempy === 275)) redo = true;
+		if((tempx === grass[i].x && tempy === grass[i].y) || (tempx === mouse.x && tempy === mouse.y)) redo = true;
+	}
+	for (var i = 0; i < cheese.length; i++) {
+		if (tempx === cheese[i].x && tempy === cheese[i].y) redo = true;
 	}
 	if (redo) catPos();
 	else cats.push({x: tempx, y: tempy});
@@ -271,7 +275,7 @@ function removeCat(arrNum) {
 	cats.splice(arrNum, 1);
 }
 
-createCat(2);
+createCat(1);
 
 var catMoves;
 var catBestMove;
@@ -399,8 +403,8 @@ var catInterval = setInterval(function() {
 	catMove();
 }, 1000)
 
-var cheese = [];
 
+var level = 1;
 function catsCaught() {
 	var allCatsCaught = true;
 	for (var i = 0; i < catBestMove.length; i++) {
@@ -411,10 +415,30 @@ function catsCaught() {
 			cheese.push(cats[i]);
 		}
 		cats = [];
+		level++;
+		if (level === 2) createCat(2);
+		else if (level === 3) createCat(1);
+		else if (level === 4) createCat(2);
+		else if (level === 5) createCat(2);
+		else if (level === 6) { resetLevel(); createCat(3); }
+		else if (level === 7) createCat(2);
+		else if (level === 8) createCat(3);
+		else if (level === 9) {resetLevel(); createCat(4); }
+		else if (level === 10) createCat(4);
+		else if (level === 11) createCat(2);
+		else if (level === 12) {resetLevel(); createCat(4)};
+		else if (level === 13) createCat(4);
+		else createCat(2);
 	}
 }
 
 var score = 0;
+
+function resetLevel() {
+	setWalls();
+	setGrass();
+	mouse = {x: 275, y: 275};
+}
 
 function paint() {
 	if (wallReady && grassReady && catReady && mouseReady && cheeseReady) {
