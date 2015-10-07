@@ -375,7 +375,7 @@ function catMove() {
 		}
 	}
 	touch3(cats, cats, singleCatMove2)
-	createCheese();
+	catsCaught();
 }
 
 function singleCatMove(arrNum) {
@@ -401,7 +401,7 @@ var catInterval = setInterval(function() {
 
 var cheese = [];
 
-function createCheese() {
+function catsCaught() {
 	var allCatsCaught = true;
 	for (var i = 0; i < catBestMove.length; i++) {
 		if (catBestMove[i].distance != 1000) allCatsCaught = false;
