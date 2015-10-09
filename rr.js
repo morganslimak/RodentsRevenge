@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+//set up canvas and load all images
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 canvas.width = 575;
@@ -40,8 +41,14 @@ cheeseImg.onload = function () {
 };
 cheeseImg.src = "cheese.jpg";
 
+//where we'll store the positions of all the objects
 var cheese = [];
 var grass = [];
+var walls = [];
+var cats = [];
+var mouse = {x: 275, y: 275};
+
+//set up the walls and grass
 
 function setGrass() {
 	for (var x = 0; x < 15; x++) {
@@ -53,8 +60,54 @@ function setGrass() {
 }
 setGrass();
 
-var mouse = {x: 275, y: 275};
+function setWalls() {
+	for (var i = 0; i < canvas.width; i += 25) {
+		walls.push({x: i, y: 0});
+		walls.push({x: 0, y: i});
+		walls.push({x: i, y: canvas.height - 25});
+		walls.push({x: canvas.width - 25, y: i});
+	}
+}
+setWalls();
 
+//select a random open position on the canvas for the cat to spawn and create the cat
+function catPos() {
+	var tempx = Math.ceil(Math.random()*30)*25;
+	while (tempx > 525 || tempx < 25) tempx = Math.ceil(Math.random()*30)*25;
+	var tempy = Math.ceil(Math.random()*30)*25;
+	while (tempy > 525 || tempy < 25) tempy = Math.ceil(Math.random()*30)*25;
+	var redo = false;
+	for (var i = 0; i < grass.length; i++) {
+		if((tempx === grass[i].x && tempy === grass[i].y) || (tempx === mouse.x && tempy === mouse.y)) redo = true;
+	}
+	for (var i = 0; i < cheese.length; i++) {
+		if (tempx === cheese[i].x && tempy === cheese[i].y) redo = true;
+	}
+	for (var i = 0; i < 6; i++) {
+		for (var q = 0; q < 6; q++) {
+			if (tempx === mouse.x + (25*i) && tempy === mouse.y + (25*q)) redo = true; 
+		}
+	}
+	if (redo) catPos();
+	else cats.push({x: tempx, y: tempy});
+}
+
+//create x number of cats
+function createCat(num) {
+	do {
+		catPos();
+		num -= 1;
+	}
+	while(num > 0);
+}
+createCat(1);
+
+//remove an individual cat from the array
+function removeCat(arrNum) {
+	cats.splice(arrNum, 1);
+}
+
+//controls the movement of the mouse
 var dir;
 
 $(window).keydown(function(e){
@@ -79,8 +132,18 @@ $(window).keydown(function(e){
 			dir = "d";
 			checkTouch();
 			break;
+		case 13:
+			resetGame();
+			break;
 	}	
 })
+
+//for use with the mouse touching an array
+function touch(arr, obj, action) {
+	for (var i = 0; i < arr.length; i++) {
+		if ( obj.x === arr[i].x && obj.y === arr[i].y) action(i);
+	}
+}
 
 function checkTouch() {
 	touch(grass, mouse, grassMove);
@@ -89,12 +152,7 @@ function checkTouch() {
 	touch(cheese, mouse, cheeseTouch);
 }
 
-function touch(arr, obj, action) {
-	for (var i = 0; i < arr.length; i++) {
-		if ( obj.x === arr[i].x && obj.y === arr[i].y) action(i);
-	}
-}
-
+//for use when two different arrays touch
 function touch2(arr, arr2, action) {
 	for (var i = 0; i < arr.length; i++) {
 		for (var z = 0; z < arr2.length; z++) {
@@ -105,6 +163,7 @@ function touch2(arr, arr2, action) {
 	}
 }
 
+//for testing the touching of objects in the same array
 function touch3(arr, arr2, action) {
 	for (var i = 0; i < arr.length; i++) {
 		for (var z = 0; z < arr2.length; z++) {
@@ -115,30 +174,7 @@ function touch3(arr, arr2, action) {
 	}
 }
 
-function noMove() {
-	if (dir === "l") mouse.x += 25;
-	else if (dir === "r") mouse.x -= 25;
-	else if (dir === "u") mouse.y += 25;
-	else mouse.y -= 25;
-}
-
-function gameOver() {
-	clearInterval(gameLoop);
-	ctx.font = "100px Arial";
-	ctx.fillStyle = "red";
-	ctx.textAlign = "center";
-	ctx.fillText("Game Over!", canvas.width/2, canvas.height/2);
-}
-
-function cheeseTouch(arrNum) {
-	cheese.splice(arrNum, 1);
-	score += 10;
-}
-
-function cheeseTouchGrass(arrNum) {
-	cheese.splice(arrNum, 1);
-}
-
+//testing if objects in an array are against a wall
 function wallTouch(arr, arr2, direction) {
 	var doesNotExist = true;
 	var series = true;
@@ -159,6 +195,39 @@ function wallTouch(arr, arr2, direction) {
 	return doesNotExist;
 }
 
+//mouse attempts to make a move that isn't possible
+function noMove() {
+	if (dir === "l") mouse.x += 25;
+	else if (dir === "r") mouse.x -= 25;
+	else if (dir === "u") mouse.y += 25;
+	else mouse.y -= 25;
+}
+
+//mouse touches cat
+function gameOver() {
+	clearInterval(gameLoop);
+	ctx.font = "100px Arial";
+	ctx.fillStyle = "black";
+	ctx.textAlign = "center";
+	ctx.fillText("Game Over!", canvas.width/2, canvas.height/2);
+	ctx.font = "25px Arial";
+	ctx.fillText("Please press enter to restart...", canvas.width/2, canvas.height/2 + 50);
+}
+
+//mouse touches a cheese, increases score
+var score = 0;
+
+function cheeseTouch(arrNum) {
+	cheese.splice(arrNum, 1);
+	score += 10;
+}
+
+//grass touches the cheese
+function cheeseTouchGrass(arrNum) {
+	cheese.splice(arrNum, 1);
+}
+
+//controls the movement of the grass blocks and the resulting effects on other objects
 grassPos = [];
 
 function grassMove() {
@@ -240,56 +309,7 @@ function grassMove() {
 	}
 }
 
-var walls = [];
-
-function setWalls() {
-	for (var i = 0; i < canvas.width; i += 25) {
-		walls.push({x: i, y: 0});
-		walls.push({x: 0, y: i});
-		walls.push({x: i, y: canvas.height - 25});
-		walls.push({x: canvas.width - 25, y: i});
-	}
-}
-
-setWalls();
-
-cats = [];
-
-function catPos() {
-	var tempx = Math.ceil(Math.random()*30)*25;
-	while (tempx > 525 || tempx < 25) tempx = Math.ceil(Math.random()*30)*25;
-	var tempy = Math.ceil(Math.random()*30)*25;
-	while (tempy > 525 || tempy < 25) tempy = Math.ceil(Math.random()*30)*25;
-	var redo = false;
-	for (var i = 0; i < grass.length; i++) {
-		if((tempx === grass[i].x && tempy === grass[i].y) || (tempx === mouse.x && tempy === mouse.y)) redo = true;
-	}
-	for (var i = 0; i < cheese.length; i++) {
-		if (tempx === cheese[i].x && tempy === cheese[i].y) redo = true;
-	}
-	for (var i = 0; i < 6; i++) {
-		for (var q = 0; q < 6; q++) {
-			if (tempx === mouse.x + (25*i) && tempy === mouse.y + (25*q)) redo = true; 
-		}
-	}
-	if (redo) catPos();
-	else cats.push({x: tempx, y: tempy});
-}
-
-function createCat(num) {
-	do {
-		catPos();
-		num -= 1;
-	}
-	while(num > 0);
-}
-
-function removeCat(arrNum) {
-	cats.splice(arrNum, 1);
-}
-
-createCat(1);
-
+//Cat AI..determines all possible moves for each cat, then selects the best move based on the move that will bring the cat closest to the mouse
 var catMoves;
 var catBestMove;
 
@@ -379,6 +399,7 @@ function checkMoves() {
 	}
 }
 
+//all the cat movement functions, keeping cats from touching each other or being forced off the canvas
 function catMove() {
 	checkMoves();
 	for (var i = 0; i < cats.length; i++) {
@@ -411,14 +432,16 @@ function singleCatMove2(arrNum) {
 	cats[arrNum].y = catBestMove[arrNum].y;
 }
 
-
+//cats make a move every 1 second
 var catInterval = setInterval(function() {
 	catMove();
 }, 1000)
 
 
+//if all cats are caught, turn them into cheese and start the next level
 var level = 1;
 var levelClear = false;
+
 function catsCaught() {
 	var allCatsCaught = true;
 	for (var i = 0; i < catBestMove.length; i++) {
@@ -461,8 +484,7 @@ function catsCaught() {
 	}
 }
 
-var score = 0;
-
+//resets the canvas
 function resetLevel() {
 	cheese = [];
 	walls = [];
@@ -472,6 +494,28 @@ function resetLevel() {
 	mouse = {x: 275, y: 275};
 }
 
+//resets the game
+function resetGame() {
+	clearInterval(gameLoop);
+	cheese = [];
+	grass = [];
+	walls = [];
+	cats = [];
+	mouse = {x: 275, y: 275};
+	score = 0;
+	level = 1;
+	levelClear = false;
+	setWalls();
+	setGrass();
+	createCat(1);
+	gameLoop = setInterval(function() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		paint();
+		touch(cats, mouse, gameOver);
+	}, 100);
+}
+
+//renders the canvas and images
 function paint() {
 	if (wallReady && grassReady && catReady && mouseReady && cheeseReady) {
 		ctx.fillStyle = "#7F8027";
@@ -507,11 +551,11 @@ function paint() {
 	}
 }
 
+//main game loop
 var gameLoop = setInterval(function() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	paint();
 	touch(cats, mouse, gameOver);
 }, 100);
-
 
 })
